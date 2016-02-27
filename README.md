@@ -1,5 +1,5 @@
 ## Fibonacci Calculator
-This flask app calculates the fibonacci number of your choosing after logging you in with your Google account.
+This flask app calculates the fibonacci number of your choosing after logging you in with your Google account. This project makes use of the users api as well as memcache.
 
 ## Run Locally
 1. Install the [App Engine Python SDK](https://developers.google.com/appengine/downloads).
