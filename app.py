@@ -1,5 +1,6 @@
 from flask import Flask
 from flask import request
+from flask import render_template
 import json
 import requests
 import xmltodict
@@ -27,6 +28,10 @@ def wrap_get_request(url, params):
 		return json.dumps(parse_api_error(obj) or obj)
 	except Exception as ex:
 		return json.dumps(create_error(str(ex)))
+
+@app.route('/')
+def root():
+	return render_template('index.html')
 
 @app.route('/lookup')
 def lookup():
