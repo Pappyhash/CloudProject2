@@ -1,26 +1,17 @@
-## Fibonacci Calculator
-This flask app calculates the fibonacci number of your choosing after logging you in with your Google account. This project makes use of the users api as well as memcache.
+# Stock API
 
-## Run Locally
-1. Install the [App Engine Python SDK](https://developers.google.com/appengine/downloads).
-See the README file for directions. You'll need python 2.7 and [pip 1.4 or later](http://www.pip-installer.org/en/latest/installing.html) installed too.
+This API provides a basic wrapper around the [Markit On Demand](https://www.markit.com/product/markit-on-demand) stock API. That API uses XML, which I have converted into a JSON API to simplify integrations.
 
-2. Clone this repo
-3. Install dependencies in the project's lib directory.
-   Note: App Engine can only import libraries from inside your project directory.
+## Quote Symbol Lookup
 
-   ```
-   pip install -r requirements.txt -t lib
-   ```
-4. Run this project locally from the command line:
+This endpoint allows a consumer to lookup a company's quote symbol with a partial symbol or partial company name.
+| Field         | Type           | Description  |
+| ------------- |:-------------:| -----:|
+| input      | string | Partial symbol or partial company name |
 
-   ```
-   dev_appserver.py .
-   ```
+## Quote Lookup
 
-Visit the application [http://localhost:8080](http://localhost:8080)
-
-## Testing
-
-1. Click the login link to login with your Google Account
-2. Enter a number into the textbox and press Submit
+This endpoint gives the consumer information about the given quote symbol
+| Field         | Type           | Description  |
+| ------------- |:-------------:| -----:|
+| symbol      | string | valid quote symbol |
