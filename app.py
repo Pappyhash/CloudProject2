@@ -3,6 +3,12 @@ from flask import request
 import json
 import requests
 import xmltodict
+from pymongo import MongoClient
+
+client = MongoClient('mongodb://cloud:cloud@ds015899.mlab.com:15899/cloud-p2')
+db = client.get_default_database()
+
+#db['app'].insert({ 'test': 'test' })
 
 app = Flask(__name__)
 
