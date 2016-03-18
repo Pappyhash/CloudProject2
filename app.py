@@ -4,6 +4,8 @@ from flask import render_template
 import json
 import requests
 import xmltodict
+import urllib
+import urllib.parse
 from pymongo import MongoClient
 
 client = MongoClient('mongodb://cloud:cloud@ds015899.mlab.com:15899/cloud-p2')
@@ -29,12 +31,33 @@ def wrap_get_request(url, params):
 	except Exception as ex:
 		return json.dumps(create_error(str(ex)))
 
+def lookupStockHistory(symbol, startDate, endDate):
+	url = 'http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?parameters='
+	params = ['Normalized', 'StartDate', 'EndDate', 'Company']
+	input = {}
+	input['Normalized'] = False
+	input['DataPeriod'] = 'Day'
+
+	element = [{}]
+	element[0]['Symbol'] = symbol
+	element[0]['Type'] = 'price'
+	element[0]['Params'] = ["c"]
+	input['Elements'] = element
+
+	input['StartDate'] = startDate + 'T00:00:00-00'
+	input['EndDate'] = endDate + 'T00:00:00-00'
+
+	url = url + urllib.parse.quote(json.dumps(input))
+
+	r = requests.get(url)
+	return r.text
+
 @app.route('/')
 def root():
 	return render_template('index.html')
 
 @app.route('/lookup')
-def lookup():
+def lookupSymbol():
 	return wrap_get_request('http://dev.markitondemand.com/Api/v2/Lookup', { 'input': request.args.get('input') })
 
 @app.route('/quote')
@@ -42,30 +65,8 @@ def quote():
 	return wrap_get_request('http://dev.markitondemand.com/Api/v2/Quote', { 'symbol': request.args.get('symbol') })
 
 @app.route('/StockHistory')
-def lookup():
-	url = 'http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?parameters='
-	params = ['Normalized', 'StartDate', 'EndDate', 'Company']
-	input = {}
-	for i in range(0,len(params)):
-		if params[i] == 'Company':
-			element = [{}]
-			element[0]['Symbol'] = request.args.get(params[i])
-			element[0]['Type'] = 'price'
-			element[0]['Params'] = ["c"]
-			input['Elements'] = element
-		elif params[i] == 'StartDate':
-			input[params[i]] = request.args.get(params[i]) + 'T00:00:00-00'
-		elif params[i] == 'EndDate':
-			input[params[i]] = request.args.get(params[i]) + 'T00:00:00-00'
-		else:	
-			input[params[i]] = request.args.get(params[i])
-	
-	input['DataPeriod'] = 'Day'
-
-	url = url + urllib.quote_plus(json.dumps(input))
-
-	r = requests.get(url)
-	return r.text
+def eliSucks():
+	return lookupStockHistory(request.args.get('Company'), request.args.get('StartDate'), request.args.get('EndDate'))
 
 if __name__ == '__main__':
 	app.run(debug=True,port=8080,host='0.0.0.0')
