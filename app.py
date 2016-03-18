@@ -41,5 +41,31 @@ def lookup():
 def quote():
 	return wrap_get_request('http://dev.markitondemand.com/Api/v2/Quote', { 'symbol': request.args.get('symbol') })
 
+@app.route('/StockHistory')
+def lookup():
+	url = 'http://dev.markitondemand.com/MODApis/Api/v2/InteractiveChart/json?parameters='
+	params = ['Normalized', 'StartDate', 'EndDate', 'Company']
+	input = {}
+	for i in range(0,len(params)):
+		if params[i] == 'Company':
+			element = [{}]
+			element[0]['Symbol'] = request.args.get(params[i])
+			element[0]['Type'] = 'price'
+			element[0]['Params'] = ["c"]
+			input['Elements'] = element
+		elif params[i] == 'StartDate':
+			input[params[i]] = request.args.get(params[i]) + 'T00:00:00-00'
+		elif params[i] == 'EndDate':
+			input[params[i]] = request.args.get(params[i]) + 'T00:00:00-00'
+		else:	
+			input[params[i]] = request.args.get(params[i])
+	
+	input['DataPeriod'] = 'Day'
+
+	url = url + urllib.quote_plus(json.dumps(input))
+
+	r = requests.get(url)
+	return r.text
+
 if __name__ == '__main__':
 	app.run(debug=True,port=8080,host='0.0.0.0')
