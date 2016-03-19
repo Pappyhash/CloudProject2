@@ -90,20 +90,19 @@ def predict():
 def root():
 	if request.method == 'POST':
 		company = request.form['company']
-		return render_template('index.html')
+		result = lookupSymbol(company)
+		return result
 	else:
 		return render_template('index.html')
 
-@app.route('/lookup')
-def lookupSymbol():
-	return wrap_get_request('http://dev.markitondemand.com/Api/v2/Lookup', { 'input': request.args.get('input') })
+def lookupSymbol(company):
+	parsed_json = json.loads(wrap_get_request('http://dev.markitondemand.com/Api/v2/Lookup', { 'input': company }))
+	return parsed_json['LookupResultList']['LookupResult'][0]['Symbol']
 
-@app.route('/quote')
 def quote():
 	return wrap_get_request('http://dev.markitondemand.com/Api/v2/Quote', { 'symbol': request.args.get('symbol') })
 
-@app.route('/StockHistory')
-def eliSucks():
+def lookupStockHistory():
 	return lookupStockHistory(request.args.get('Company'), request.args.get('StartDate'), request.args.get('EndDate'))
 
 if __name__ == '__main__':
