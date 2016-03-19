@@ -14,17 +14,20 @@ db = client.get_default_database()
 app = Flask(__name__)
 
 def store_data_point(symbol, date, price):
-	return db['app'].insert({ 'symbol': symbol, 'date': date, 'price': price })
+	doc = { 'symbol': symbol, 'date': date, 'price': price }
+	return db['app'].replace_one(doc, doc, True)
 
 def get_data_point(symbol, date):
 	doc = db['app'].find_one({ 'symbol': symbol, 'date': date })
 	if doc is None:
-		# point not in database
-	return doc.price
+		lookupStockHistory(symbol, date, date)
+		return db['app'].find_one({ 'symbol': symbol, 'date': date })
+	return doc
 
 def get_prediction(symbol, startDate, endDate):
-	pass
-	#startPrice = get_data_point(symbol,)
+	startPrice = get_data_point(symbol, startDate)
+	endPrice = get_data_point(symbol, endDate)
+	return 'increasing' if endPrice > startPrice else 'decreasing'
 
 def parse_api_error(obj):
 	return None # TODO: parse errors and return in custom format
@@ -58,17 +61,30 @@ def lookupStockHistory(symbol, startDate, endDate):
 	input['StartDate'] = startDate + 'T00:00:00-00'
 	input['EndDate'] = endDate + 'T00:00:00-00'
 
+	print(input)
+
 	url = url + urllib.parse.quote(json.dumps(input))
 
 	r = requests.get(url)
 	result = json.loads(r.text)
 
+	print(result)
 	dates = result['Dates']
 	prices = result['Elements'][0]['DataSeries']['close']['values']
 	for i in range(0, len(dates)):
 		store_data_point(symbol, dates[i], prices[i])
 
 	return r.text
+
+@app.route('/predict')
+def predict():
+	symbol = request.args.get('Symbol')
+	startDate = request.args.get('StartDate')
+	endDate = request.args.get('EndDate')
+	print(startDate)
+	print(endDate)
+	result = get_prediction(symbol, startDate, endDate)
+	return json.dumps({ 'result': result })
 
 @app.route('/', methods=['GET', 'POST'])
 def root():
