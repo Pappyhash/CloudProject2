@@ -14,19 +14,26 @@ db = client.get_default_database()
 app = Flask(__name__)
 
 def store_data_point(symbol, date, price):
+	print('inserting', symbol, date, price)
 	doc = { 'symbol': symbol, 'date': date, 'price': price }
 	return db['app'].replace_one(doc, doc, True)
 
-def get_data_point(symbol, date):
-	doc = db['app'].find_one({ 'symbol': symbol, 'date': date })
-	if doc is None:
-		lookupStockHistory(symbol, date, date)
-		return db['app'].find_one({ 'symbol': symbol, 'date': date })
-	return doc
-
 def get_prediction(symbol, startDate, endDate):
-	startPrice = get_data_point(symbol, startDate)
-	endPrice = get_data_point(symbol, endDate)
+	print(symbol, startDate, endDate)
+	startDoc = db['app'].find_one({ 'symbol': symbol, 'date': startDate + 'T00:00:00' })
+	if startDoc is None:
+		lookupStockHistory(symbol, startDate, endDate)
+		startDoc = db['app'].find_one({ 'symbol': symbol, 'date': startDate + 'T00:00:00' })
+
+	endDoc = db['app'].find_one({ 'symbol': symbol, 'date': endDate + 'T00:00:00' })
+	if endDoc is None:
+		lookupStockHistory(symbol, startDate, endDate)
+		endDoc = db['app'].find_one({ 'symbol': symbol, 'date': endDate + 'T00:00:00' })
+
+	print(startDoc)
+	print(endDoc)
+	startPrice = startDoc['price']
+	endPrice = endDoc['price']
 	return 'increasing' if endPrice > startPrice else 'decreasing'
 
 def parse_api_error(obj):
@@ -102,8 +109,8 @@ def lookupSymbol(company):
 def quote():
 	return wrap_get_request('http://dev.markitondemand.com/Api/v2/Quote', { 'symbol': request.args.get('symbol') })
 
-def lookupStockHistory():
-	return lookupStockHistory(request.args.get('Company'), request.args.get('StartDate'), request.args.get('EndDate'))
+# def lookupStockHistory():
+# 	return lookupStockHistory(request.args.get('Company'), request.args.get('StartDate'), request.args.get('EndDate'))
 
 if __name__ == '__main__':
 	app.run(debug=True,port=8080,host='0.0.0.0')
