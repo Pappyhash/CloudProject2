@@ -52,9 +52,13 @@ def lookupStockHistory(symbol, startDate, endDate):
 	r = requests.get(url)
 	return r.text
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def root():
-	return render_template('index.html')
+	if request.method == 'POST':
+		company = request.form['company']
+		return render_template('index.html')
+	else:
+		return render_template('index.html')
 
 @app.route('/lookup')
 def lookupSymbol():
