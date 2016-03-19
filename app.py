@@ -11,9 +11,20 @@ from pymongo import MongoClient
 client = MongoClient('mongodb://cloud:cloud@ds015899.mlab.com:15899/cloud-p2')
 db = client.get_default_database()
 
-#db['app'].insert({ 'test': 'test' })
-
 app = Flask(__name__)
+
+def store_data_point(symbol, date, price):
+	return db['app'].insert({ 'symbol': symbol, 'date': date, 'price': price })
+
+def get_data_point(symbol, date):
+	doc = db['app'].find_one({ 'symbol': symbol, 'date': date })
+	if doc is None:
+		# point not in database
+	return doc.price
+
+def get_prediction(symbol, startDate, endDate):
+	pass
+	#startPrice = get_data_point(symbol,)
 
 def parse_api_error(obj):
 	return None # TODO: parse errors and return in custom format
@@ -50,6 +61,13 @@ def lookupStockHistory(symbol, startDate, endDate):
 	url = url + urllib.parse.quote(json.dumps(input))
 
 	r = requests.get(url)
+	result = json.loads(r.text)
+
+	dates = result['Dates']
+	prices = result['Elements'][0]['DataSeries']['close']['values']
+	for i in range(0, len(dates)):
+		store_data_point(symbol, dates[i], prices[i])
+
 	return r.text
 
 @app.route('/', methods=['GET', 'POST'])
